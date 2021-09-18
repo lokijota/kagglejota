@@ -1,5 +1,7 @@
 # jota -- don't upload the large files (CSVs)
 *.csv
+*.zip
+*.7z
 
 
 

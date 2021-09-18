@@ -1,0 +1,63 @@
+EDSP
+- EDSP Internal > Monthly Updates > Every month there's a new one
+	- all the new certified data scientists + proctors
+	- update info on franchises 
+	- update: documentation for proctors
+
+planned for next month:
+- dashboard not done yet
+- automation for ds challenge
+- issues and blockers were submited to MBR process
+- Partner motion - remove the partner
+
+HOK - issues around IP/PII and new meeting with CELA i place
+
+Program Insights:
+
+
+REMIND PEOPLE TO FILL IN CUSTOMER REFERENCE PIPELINE / MAKE SURE THE SHAREPOINT LIST IS UPDATED
+PARAM - NE
+KUMAL - FSI
+JAMES - NCSA
+
+SEND A REMINDER ON MONDAY TO UPDATE THE DECK -- TO ALL THE PEOPLE THE OWN THE DECK
+
+EDSP CONTACT LIST IS IN THE EDSP FOLDER
+
+
+
+ALSO: PRESENT ON HOW TO ENGAGE WITH FAST TRACK TO THE TEAM / PROVIDE FEEDBACK / THEY DON'T DO EDSP
+- SEE THE RECORDING FROM LAST WEEK'S TEAM 
+- I HAVE AN EMAIL WITH A FLOWCHART
+- THEY DON'T DO EDSP OR HOK
+- THEY DO AI/ML WORKLOADS -- MAYBE JUST NEED SOME GUIDANCE, OR A SETUP INFRA SETUP, OR DATA ENGINEERING PIECE, AND THEN GIVE IT BACK TO US
+- HOK => US/RANGERS
+- PROVIDE FEEDBACK TO THE FAST TRACK TEAM
+
+REMINDER TO MARK ENGAGEMENTS AS COMPLETE ON MSX
+
+Lisa replied to sudha's email on value of EDSP / it's all in the deck
+
+add a link to the mlops survey! ask people to fill it in
+
+edit link:
+https://forms.office.com/Pages/DesignPage.aspx?fragment=FormId%3Dv4j5cvGGr0GRqy180BHbR2oRbbPGrUJFtAHco4zFt49UNEJCSzJVWUkyT1hUU1dXMUQ4RkVRVEdPRS4u
+
+-------------------------------------------------------------------------------------------------------
+
+msxinsights > business analytics > customer success > expand filters on the right side, look for field for "Program Name" and pick Enterprise Data Science
+
+- Milestone due quarter: all
+- Engagement stage: all stages
+
+the totals at the bottom come from this view
+
+PING PEOPLE TO UPDATE THE DECK AND THE CUSTOMER REFERENCE PIPELINE / TO SEE WHAT CUSTOMER REFERENCES ARE IN THE WORKS
+
+Monday an holiday in the US > send a reminder to update deck + customer rerferences + include link to this month's
+
+-------------------------------------------------------------------------------------------------------
+
+
+"we're getting a lot of bullshit requests" >> csa's are at the brink of capacity
+big-4 have 16 csa's and they're all super busy
