@@ -1,0 +1,360 @@
+{
+  "cells": [
+    {
+      "cell_type": "code",
+      "source": [
+        "import warnings\n",
+        "import numpy as np\n",
+        "import pandas as pd\n",
+        "#from pandas_profiling import ProfileReport\n",
+        "import matplotlib.pyplot as plt\n",
+        "import seaborn as sns\n",
+        "from sklearn import set_config\n",
+        "\n",
+        "warnings.filterwarnings(\"ignore\")\n",
+        "\n",
+        "#import sklearn\n",
+        "#sklearn.show_versions()\n",
+        "#sklearn.__version__\n",
+        "set_config(display='diagram')"
+      ],
+      "outputs": [],
+      "execution_count": 1,
+      "metadata": {
+        "gather": {
+          "logged": 1647901228981
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {
+        "jupyter": {
+          "source_hidden": false,
+          "outputs_hidden": false
+        },
+        "nteract": {
+          "transient": {
+            "deleting": false
+          }
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "data = pd.read_csv('data/train.csv', index_col=0)"
+      ],
+      "outputs": [],
+      "execution_count": 2,
+      "metadata": {
+        "gather": {
+          "logged": 1647901229388
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import flaml\n",
+        "flaml.__version__"
+      ],
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "execution_count": 3,
+          "data": {
+            "text/plain": "'0.10.0'"
+          },
+          "metadata": {}
+        }
+      ],
+      "execution_count": 3,
+      "metadata": {
+        "jupyter": {
+          "source_hidden": false,
+          "outputs_hidden": false
+        },
+        "nteract": {
+          "transient": {
+            "deleting": false
+          }
+        },
+        "gather": {
+          "logged": 1647901230240
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from sklearn.preprocessing import MinMaxScaler\n",
+        "from numpy import log\n",
+        "from datetime import date, datetime\n",
+        "\n",
+        "def feature_generation(data):\n",
+        "\n",
+        "    features = data.columns\n",
+        "\n",
+        "    data.time = pd.to_datetime(data.time)\n",
+        "\n",
+        "    data.loc[:, 'hour'] = data.time.dt.hour\n",
+        "    data.loc[:, 'day_of_week'] = data.time.dt.dayofweek\n",
+        "\n",
+        "    start_date = pd.to_datetime(date(1991, 4, 1)) #where the dataset beggins\n",
+        "    data.loc[:, 'days_since_beg_of_time'] = [(a_date - start_date).days for a_date in data.time]\n",
+        "\n",
+        "    # get values from previous samples\n",
+        "    #data_shift1h = data.copy().shift(1, axis=0)\n",
+        "\n",
+        "    #data = CopyFeatures(data, [1, 12, 24])\n",
+        "\n",
+        "    #abs(data.date_time - start_date).days\n",
+        "    # data.loc[:, 'is_weekend'] = (data.date_time.dt.dayofweek > 5).astype(int) # no importance to lgbm\n",
+        "  \n",
+        "    return data, features\n",
+        "\n",
+        "scaler = MinMaxScaler()\n",
+        "data, features = feature_generation(data)\n",
+        "\n",
+        "#data[features] = scaler.fit_transform(data[features])\n",
+        "\n",
+        "data"
+      ],
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "execution_count": 4,
+          "data": {
+            "text/plain": "                      time  x  y direction  congestion  hour  day_of_week  \\\nrow_id                                                                      \n0      1991-04-01 00:00:00  0  0        EB          70     0            0   \n1      1991-04-01 00:00:00  0  0        NB          49     0            0   \n2      1991-04-01 00:00:00  0  0        SB          24     0            0   \n3      1991-04-01 00:00:00  0  1        EB          18     0            0   \n4      1991-04-01 00:00:00  0  1        NB          60     0            0   \n...                    ... .. ..       ...         ...   ...          ...   \n848830 1991-09-30 11:40:00  2  3        NB          54    11            0   \n848831 1991-09-30 11:40:00  2  3        NE          28    11            0   \n848832 1991-09-30 11:40:00  2  3        SB          68    11            0   \n848833 1991-09-30 11:40:00  2  3        SW          17    11            0   \n848834 1991-09-30 11:40:00  2  3        WB          24    11            0   \n\n        days_since_beg_of_time  \nrow_id                          \n0                            0  \n1                            0  \n2                            0  \n3                            0  \n4                            0  \n...                        ...  \n848830                     182  \n848831                     182  \n848832                     182  \n848833                     182  \n848834                     182  \n\n[848835 rows x 8 columns]",
+            "text/html": "<div>\n<style scoped>\n    .dataframe tbody tr th:only-of-type {\n        vertical-align: middle;\n    }\n\n    .dataframe tbody tr th {\n        vertical-align: top;\n    }\n\n    .dataframe thead th {\n        text-align: right;\n    }\n</style>\n<table border=\"1\" class=\"dataframe\">\n  <thead>\n    <tr style=\"text-align: right;\">\n      <th></th>\n      <th>time</th>\n      <th>x</th>\n      <th>y</th>\n      <th>direction</th>\n      <th>congestion</th>\n      <th>hour</th>\n      <th>day_of_week</th>\n      <th>days_since_beg_of_time</th>\n    </tr>\n    <tr>\n      <th>row_id</th>\n      <th></th>\n      <th></th>\n      <th></th>\n      <th></th>\n      <th></th>\n      <th></th>\n      <th></th>\n      <th></th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <th>0</th>\n      <td>1991-04-01 00:00:00</td>\n      <td>0</td>\n      <td>0</td>\n      <td>EB</td>\n      <td>70</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n    </tr>\n    <tr>\n      <th>1</th>\n      <td>1991-04-01 00:00:00</td>\n      <td>0</td>\n      <td>0</td>\n      <td>NB</td>\n      <td>49</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n    </tr>\n    <tr>\n      <th>2</th>\n      <td>1991-04-01 00:00:00</td>\n      <td>0</td>\n      <td>0</td>\n      <td>SB</td>\n      <td>24</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n    </tr>\n    <tr>\n      <th>3</th>\n      <td>1991-04-01 00:00:00</td>\n      <td>0</td>\n      <td>1</td>\n      <td>EB</td>\n      <td>18</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n    </tr>\n    <tr>\n      <th>4</th>\n      <td>1991-04-01 00:00:00</td>\n      <td>0</td>\n      <td>1</td>\n      <td>NB</td>\n      <td>60</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n    </tr>\n    <tr>\n      <th>...</th>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n    </tr>\n    <tr>\n      <th>848830</th>\n      <td>1991-09-30 11:40:00</td>\n      <td>2</td>\n      <td>3</td>\n      <td>NB</td>\n      <td>54</td>\n      <td>11</td>\n      <td>0</td>\n      <td>182</td>\n    </tr>\n    <tr>\n      <th>848831</th>\n      <td>1991-09-30 11:40:00</td>\n      <td>2</td>\n      <td>3</td>\n      <td>NE</td>\n      <td>28</td>\n      <td>11</td>\n      <td>0</td>\n      <td>182</td>\n    </tr>\n    <tr>\n      <th>848832</th>\n      <td>1991-09-30 11:40:00</td>\n      <td>2</td>\n      <td>3</td>\n      <td>SB</td>\n      <td>68</td>\n      <td>11</td>\n      <td>0</td>\n      <td>182</td>\n    </tr>\n    <tr>\n      <th>848833</th>\n      <td>1991-09-30 11:40:00</td>\n      <td>2</td>\n      <td>3</td>\n      <td>SW</td>\n      <td>17</td>\n      <td>11</td>\n      <td>0</td>\n      <td>182</td>\n    </tr>\n    <tr>\n      <th>848834</th>\n      <td>1991-09-30 11:40:00</td>\n      <td>2</td>\n      <td>3</td>\n      <td>WB</td>\n      <td>24</td>\n      <td>11</td>\n      <td>0</td>\n      <td>182</td>\n    </tr>\n  </tbody>\n</table>\n<p>848835 rows × 8 columns</p>\n</div>"
+          },
+          "metadata": {}
+        }
+      ],
+      "execution_count": 4,
+      "metadata": {
+        "gather": {
+          "logged": 1647901240126
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from sklearn.model_selection import train_test_split\n",
+        "from sklearn.pipeline import make_pipeline, Pipeline, FeatureUnion\n",
+        "from sklearn.compose import make_column_selector as selector\n",
+        "from sklearn.compose import ColumnTransformer, TransformedTargetRegressor\n",
+        "from sklearn.preprocessing import MinMaxScaler, PolynomialFeatures, OneHotEncoder\n",
+        "import lightgbm as lgb\n",
+        "\n",
+        "# prepare the data\n",
+        "y = data.pop('congestion')\n",
+        "X = data\n",
+        "\n",
+        "#X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, shuffle=True, random_state=42)"
+      ],
+      "outputs": [],
+      "execution_count": 5,
+      "metadata": {
+        "gather": {
+          "logged": 1647901240412
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "#!pip install flaml[notebook]\n",
+        "\n",
+        "#!pip install --upgrade --force-reinstall flaml"
+      ],
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": "Requirement already satisfied: flaml[notebook] in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (0.10.0)\nRequirement already satisfied: scikit-learn>=0.24 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from flaml[notebook]) (0.24.2)\nRequirement already satisfied: pandas>=1.1.4 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from flaml[notebook]) (1.1.5)\nRequirement already satisfied: lightgbm>=2.3.1 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from flaml[notebook]) (3.3.2)\nRequirement already satisfied: NumPy>=1.16.2 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from flaml[notebook]) (1.19.5)\nRequirement already satisfied: xgboost<=1.3.3,>=0.90 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from flaml[notebook]) (1.3.3)\nRequirement already satisfied: scipy>=1.4.1 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from flaml[notebook]) (1.5.4)\nRequirement already satisfied: openml==0.10.2; extra == \"notebook\" in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from flaml[notebook]) (0.10.2)\nRequirement already satisfied: matplotlib; extra == \"notebook\" in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from flaml[notebook]) (3.3.2)\nRequirement already satisfied: rgf-python; extra == \"notebook\" in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from flaml[notebook]) (3.12.0)\nRequirement already satisfied: jupyter; extra == \"notebook\" in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from flaml[notebook]) (1.0.0)\nRequirement already satisfied: catboost>=0.26; extra == \"notebook\" in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from flaml[notebook]) (1.0.4)\nRequirement already satisfied: joblib>=0.11 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from scikit-learn>=0.24->flaml[notebook]) (1.1.0)\nRequirement already satisfied: threadpoolctl>=2.0.0 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from scikit-learn>=0.24->flaml[notebook]) (3.1.0)\nRequirement already satisfied: python-dateutil>=2.7.3 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from pandas>=1.1.4->flaml[notebook]) (2.8.2)\nRequirement already satisfied: pytz>=2017.2 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from pandas>=1.1.4->flaml[notebook]) (2022.1)\nRequirement already satisfied: wheel in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from lightgbm>=2.3.1->flaml[notebook]) (0.37.1)\nRequirement already satisfied: requests in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from openml==0.10.2; extra == \"notebook\"->flaml[notebook]) (2.26.0)\nRequirement already satisfied: xmltodict in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from openml==0.10.2; extra == \"notebook\"->flaml[notebook]) (0.12.0)\nRequirement already satisfied: liac-arff>=2.4.0 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from openml==0.10.2; extra == \"notebook\"->flaml[notebook]) (2.5.0)\nRequirement already satisfied: kiwisolver>=1.0.1 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from matplotlib; extra == \"notebook\"->flaml[notebook]) (1.3.1)\nRequirement already satisfied: certifi>=2020.06.20 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from matplotlib; extra == \"notebook\"->flaml[notebook]) (2021.10.8)\nRequirement already satisfied: cycler>=0.10 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from matplotlib; extra == \"notebook\"->flaml[notebook]) (0.10.0)\nRequirement already satisfied: pillow>=6.2.0 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from matplotlib; extra == \"notebook\"->flaml[notebook]) (8.0.1)\nRequirement already satisfied: pyparsing!=2.0.4,!=2.1.2,!=2.1.6,>=2.0.3 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from matplotlib; extra == \"notebook\"->flaml[notebook]) (2.4.7)\nRequirement already satisfied: notebook in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from jupyter; extra == \"notebook\"->flaml[notebook]) (6.1.5)\nRequirement already satisfied: ipywidgets in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from jupyter; extra == \"notebook\"->flaml[notebook]) (7.5.1)\nRequirement already satisfied: ipykernel in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from jupyter; extra == \"notebook\"->flaml[notebook]) (5.3.4)\nRequirement already satisfied: nbconvert in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from jupyter; extra == \"notebook\"->flaml[notebook]) (6.0.7)\nRequirement already satisfied: jupyter-console in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from jupyter; extra == \"notebook\"->flaml[notebook]) (6.2.0)\nRequirement already satisfied: qtconsole in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from jupyter; extra == \"notebook\"->flaml[notebook]) (5.0.1)\nRequirement already satisfied: six in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from catboost>=0.26; extra == \"notebook\"->flaml[notebook]) (1.16.0)\nRequirement already satisfied: graphviz in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from catboost>=0.26; extra == \"notebook\"->flaml[notebook]) (0.19.1)\nRequirement already satisfied: plotly in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from catboost>=0.26; extra == \"notebook\"->flaml[notebook]) (4.14.1)\nRequirement already satisfied: charset-normalizer~=2.0.0; python_version >= \"3\" in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from requests->openml==0.10.2; extra == \"notebook\"->flaml[notebook]) (2.0.7)\nRequirement already satisfied: urllib3<1.27,>=1.21.1 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from requests->openml==0.10.2; extra == \"notebook\"->flaml[notebook]) (1.26.7)\nRequirement already satisfied: idna<4,>=2.5; python_version >= \"3\" in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from requests->openml==0.10.2; extra == \"notebook\"->flaml[notebook]) (3.3)\nRequirement already satisfied: argon2-cffi in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from notebook->jupyter; extra == \"notebook\"->flaml[notebook]) (20.1.0)\nRequirement already satisfied: tornado>=5.0 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from notebook->jupyter; extra == \"notebook\"->flaml[notebook]) (6.1)\nRequirement already satisfied: terminado>=0.8.3 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from notebook->jupyter; extra == \"notebook\"->flaml[notebook]) (0.9.1)\nRequirement already satisfied: ipython-genutils in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from notebook->jupyter; extra == \"notebook\"->flaml[notebook]) (0.2.0)\nRequirement already satisfied: traitlets>=4.2.1 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from notebook->jupyter; extra == \"notebook\"->flaml[notebook]) (4.3.3)\nRequirement already satisfied: nbformat in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from notebook->jupyter; extra == \"notebook\"->flaml[notebook]) (5.0.8)\nRequirement already satisfied: jupyter-client>=5.3.4 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from notebook->jupyter; extra == \"notebook\"->flaml[notebook]) (6.1.7)\nRequirement already satisfied: prometheus-client in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from notebook->jupyter; extra == \"notebook\"->flaml[notebook]) (0.9.0)\nRequirement already satisfied: jinja2 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from notebook->jupyter; extra == \"notebook\"->flaml[notebook]) (2.11.2)\nRequirement already satisfied: jupyter-core>=4.6.1 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from notebook->jupyter; extra == \"notebook\"->flaml[notebook]) (4.7.0)\nRequirement already satisfied: pyzmq>=17 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from notebook->jupyter; extra == \"notebook\"->flaml[notebook]) (20.0.0)\nRequirement already satisfied: Send2Trash in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from notebook->jupyter; extra == \"notebook\"->flaml[notebook]) (1.5.0)\nRequirement already satisfied: ipython>=4.0.0; python_version >= \"3.3\" in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from ipywidgets->jupyter; extra == \"notebook\"->flaml[notebook]) (7.16.1)\nRequirement already satisfied: widgetsnbextension~=3.5.0 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from ipywidgets->jupyter; extra == \"notebook\"->flaml[notebook]) (3.5.1)\nRequirement already satisfied: testpath in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from nbconvert->jupyter; extra == \"notebook\"->flaml[notebook]) (0.4.4)\nRequirement already satisfied: nbclient<0.6.0,>=0.5.0 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from nbconvert->jupyter; extra == \"notebook\"->flaml[notebook]) (0.5.1)\nRequirement already satisfied: mistune<2,>=0.8.1 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from nbconvert->jupyter; extra == \"notebook\"->flaml[notebook]) (0.8.4)\nRequirement already satisfied: defusedxml in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from nbconvert->jupyter; extra == \"notebook\"->flaml[notebook]) (0.6.0)\nRequirement already satisfied: jupyterlab-pygments in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from nbconvert->jupyter; extra == \"notebook\"->flaml[notebook]) (0.1.2)\nRequirement already satisfied: bleach in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from nbconvert->jupyter; extra == \"notebook\"->flaml[notebook]) (3.2.1)\nRequirement already satisfied: pandocfilters>=1.4.1 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from nbconvert->jupyter; extra == \"notebook\"->flaml[notebook]) (1.4.3)\nRequirement already satisfied: pygments>=2.4.1 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from nbconvert->jupyter; extra == \"notebook\"->flaml[notebook]) (2.7.3)\nRequirement already satisfied: entrypoints>=0.2.2 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from nbconvert->jupyter; extra == \"notebook\"->flaml[notebook]) (0.3)\nRequirement already satisfied: prompt-toolkit!=3.0.0,!=3.0.1,<3.1.0,>=2.0.0 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from jupyter-console->jupyter; extra == \"notebook\"->flaml[notebook]) (3.0.5)\nRequirement already satisfied: qtpy in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from qtconsole->jupyter; extra == \"notebook\"->flaml[notebook]) (1.9.0)\nRequirement already satisfied: retrying>=1.3.3 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from plotly->catboost>=0.26; extra == \"notebook\"->flaml[notebook]) (1.3.3)\nRequirement already satisfied: cffi>=1.0.0 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from argon2-cffi->notebook->jupyter; extra == \"notebook\"->flaml[notebook]) (1.15.0)\nRequirement already satisfied: ptyprocess; os_name != \"nt\" in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from terminado>=0.8.3->notebook->jupyter; extra == \"notebook\"->flaml[notebook]) (0.6.0)\nRequirement already satisfied: decorator in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from traitlets>=4.2.1->notebook->jupyter; extra == \"notebook\"->flaml[notebook]) (4.4.2)\nRequirement already satisfied: jsonschema!=2.5.0,>=2.4 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from nbformat->notebook->jupyter; extra == \"notebook\"->flaml[notebook]) (3.2.0)\nRequirement already satisfied: MarkupSafe>=0.23 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from jinja2->notebook->jupyter; extra == \"notebook\"->flaml[notebook]) (1.1.1)\nRequirement already satisfied: jedi>=0.10 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from ipython>=4.0.0; python_version >= \"3.3\"->ipywidgets->jupyter; extra == \"notebook\"->flaml[notebook]) (0.17.2)\nRequirement already satisfied: setuptools>=18.5 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from ipython>=4.0.0; python_version >= \"3.3\"->ipywidgets->jupyter; extra == \"notebook\"->flaml[notebook]) (50.3.0.post20201006)\nRequirement already satisfied: pickleshare in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from ipython>=4.0.0; python_version >= \"3.3\"->ipywidgets->jupyter; extra == \"notebook\"->flaml[notebook]) (0.7.5)\nRequirement already satisfied: backcall in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from ipython>=4.0.0; python_version >= \"3.3\"->ipywidgets->jupyter; extra == \"notebook\"->flaml[notebook]) (0.2.0)\nRequirement already satisfied: pexpect; sys_platform != \"win32\" in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from ipython>=4.0.0; python_version >= \"3.3\"->ipywidgets->jupyter; extra == \"notebook\"->flaml[notebook]) (4.8.0)\nRequirement already satisfied: nest-asyncio in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from nbclient<0.6.0,>=0.5.0->nbconvert->jupyter; extra == \"notebook\"->flaml[notebook]) (1.4.3)\nRequirement already satisfied: async-generator in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from nbclient<0.6.0,>=0.5.0->nbconvert->jupyter; extra == \"notebook\"->flaml[notebook]) (1.10)\nRequirement already satisfied: packaging in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from bleach->nbconvert->jupyter; extra == \"notebook\"->flaml[notebook]) (20.7)\nRequirement already satisfied: webencodings in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from bleach->nbconvert->jupyter; extra == \"notebook\"->flaml[notebook]) (0.5.1)\nRequirement already satisfied: wcwidth in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from prompt-toolkit!=3.0.0,!=3.0.1,<3.1.0,>=2.0.0->jupyter-console->jupyter; extra == \"notebook\"->flaml[notebook]) (0.2.5)\nRequirement already satisfied: pycparser in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from cffi>=1.0.0->argon2-cffi->notebook->jupyter; extra == \"notebook\"->flaml[notebook]) (2.21)\nRequirement already satisfied: pyrsistent>=0.14.0 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from jsonschema!=2.5.0,>=2.4->nbformat->notebook->jupyter; extra == \"notebook\"->flaml[notebook]) (0.17.3)\nRequirement already satisfied: attrs>=17.4.0 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from jsonschema!=2.5.0,>=2.4->nbformat->notebook->jupyter; extra == \"notebook\"->flaml[notebook]) (20.3.0)\nRequirement already satisfied: importlib-metadata; python_version < \"3.8\" in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from jsonschema!=2.5.0,>=2.4->nbformat->notebook->jupyter; extra == \"notebook\"->flaml[notebook]) (3.1.1)\nRequirement already satisfied: parso<0.8.0,>=0.7.0 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from jedi>=0.10->ipython>=4.0.0; python_version >= \"3.3\"->ipywidgets->jupyter; extra == \"notebook\"->flaml[notebook]) (0.7.1)\nRequirement already satisfied: zipp>=0.5 in /anaconda/envs/azureml_py36/lib/python3.6/site-packages (from importlib-metadata; python_version < \"3.8\"->jsonschema!=2.5.0,>=2.4->nbformat->notebook->jupyter; extra == \"notebook\"->flaml[notebook]) (3.4.0)\n"
+        }
+      ],
+      "execution_count": 6,
+      "metadata": {
+        "jupyter": {
+          "source_hidden": false,
+          "outputs_hidden": false
+        },
+        "nteract": {
+          "transient": {
+            "deleting": false
+          }
+        },
+        "gather": {
+          "logged": 1647901244021
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from flaml import AutoML\n",
+        "\n",
+        "automl = AutoML()\n",
+        "\n",
+        "automl.fit(X,y, task=\"regression\", metric=\"mse\")\n",
+        "\n",
+        "\n",
+        "#mode=\"max\"/\"min\"\n",
+        "#automl.fit(X, y, metric=\"mse\", task=\"regression\", time_budget=60*5, log_file_name=\"automl.log\", n_jobs=-1, seed= 7654321)  # , ensemble= False, estimator_list=['lgbm', 'catboost', 'xgboost']\n",
+        "\n",
+        "\n",
+        "#automl.fit(X, y, metric=\"mse\", task=\"regression\", time_budget=3600*8, log_file_name=\"automl.log\", n_jobs=1, eval_method='cv', n_splits=5, estimator_list=['lgbm']) #'xgboost', 'catboost', -- don't waste time with multiple algos"
+      ],
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stderr",
+          "text": "[flaml.automl: 03-21 22:27:56] {2068} INFO - task = regression\n[flaml.automl: 03-21 22:27:56] {2070} INFO - Data split method: uniform\n[flaml.automl: 03-21 22:27:56] {2074} INFO - Evaluation method: holdout\n[flaml.automl: 03-21 22:27:57] {2155} INFO - Minimizing error metric: mse\n[flaml.automl: 03-21 22:27:57] {2248} INFO - List of ML learners in AutoML Run: ['lgbm', 'rf', 'catboost', 'xgboost', 'extra_tree', 'xgb_limitdepth']\n[flaml.automl: 03-21 22:27:57] {2501} INFO - iteration 0, current learner lgbm\n"
+        },
+        {
+          "output_type": "error",
+          "ename": "TypeError",
+          "evalue": "generate_variants() takes 1 positional argument but 2 were given",
+          "traceback": [
+            "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
+            "\u001b[0;31mTypeError\u001b[0m                                 Traceback (most recent call last)",
+            "\u001b[0;32m/anaconda/envs/azureml_py36/lib/python3.6/site-packages/flaml/tune/space.py\u001b[0m in \u001b[0;36mgenerate_variants_compatible\u001b[0;34m(unresolved_spec, constant_grid_search, random_state)\u001b[0m\n\u001b[1;32m     20\u001b[0m     \u001b[0;32mtry\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---> 21\u001b[0;31m         \u001b[0;32mreturn\u001b[0m \u001b[0mgenerate_variants\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0munresolved_spec\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mconstant_grid_search\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mrandom_state\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m     22\u001b[0m     \u001b[0;32mexcept\u001b[0m \u001b[0mTypeError\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;31mTypeError\u001b[0m: generate_variants() takes 1 positional argument but 3 were given",
+            "\nDuring handling of the above exception, another exception occurred:\n",
+            "\u001b[0;31mTypeError\u001b[0m                                 Traceback (most recent call last)",
+            "\u001b[0;32m<ipython-input-15-8648ca6853c4>\u001b[0m in \u001b[0;36m<module>\u001b[0;34m\u001b[0m\n\u001b[1;32m      3\u001b[0m \u001b[0mautoml\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mAutoML\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      4\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m----> 5\u001b[0;31m \u001b[0mautoml\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mfit\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mX\u001b[0m\u001b[0;34m,\u001b[0m\u001b[0my\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mtask\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0;34m\"regression\"\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mmetric\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0;34m\"mse\"\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m      6\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      7\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/anaconda/envs/azureml_py36/lib/python3.6/site-packages/flaml/automl.py\u001b[0m in \u001b[0;36mfit\u001b[0;34m(self, X_train, y_train, dataframe, label, metric, task, n_jobs, log_file_name, estimator_list, time_budget, max_iter, sample, ensemble, eval_method, log_type, model_history, split_ratio, n_splits, log_training_metric, mem_thres, pred_time_limit, train_time_limit, X_val, y_val, sample_weight_val, groups_val, groups, verbose, retrain_full, split_type, learner_selector, hpo_method, starting_points, seed, n_concurrent_trials, keep_search_state, early_stop, append_log, auto_augment, min_sample_size, use_ray, **fit_kwargs)\u001b[0m\n\u001b[1;32m   2273\u001b[0m         \u001b[0;32melse\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m   2274\u001b[0m             \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_training_log\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0;32mNone\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m-> 2275\u001b[0;31m             \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_search\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m   2276\u001b[0m         \u001b[0;32mif\u001b[0m \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_best_estimator\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m   2277\u001b[0m             \u001b[0mlogger\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0minfo\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m\"fit succeeded\"\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/anaconda/envs/azureml_py36/lib/python3.6/site-packages/flaml/automl.py\u001b[0m in \u001b[0;36m_search\u001b[0;34m(self)\u001b[0m\n\u001b[1;32m   2769\u001b[0m             )\n\u001b[1;32m   2770\u001b[0m         \u001b[0;32melif\u001b[0m \u001b[0;32mnot\u001b[0m \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_use_ray\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m-> 2771\u001b[0;31m             \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_search_sequential\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m   2772\u001b[0m         \u001b[0;32melse\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m   2773\u001b[0m             \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_search_parallel\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/anaconda/envs/azureml_py36/lib/python3.6/site-packages/flaml/automl.py\u001b[0m in \u001b[0;36m_search_sequential\u001b[0;34m(self)\u001b[0m\n\u001b[1;32m   2592\u001b[0m                 \u001b[0mtime_budget_s\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0mmin\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mbudget_left\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_state\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mtrain_time_limit\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m,\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m   2593\u001b[0m                 \u001b[0mverbose\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0mmax\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mverbose\u001b[0m \u001b[0;34m-\u001b[0m \u001b[0;36m3\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0;36m0\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m,\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m-> 2594\u001b[0;31m                 \u001b[0muse_ray\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0;32mFalse\u001b[0m\u001b[0;34m,\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m   2595\u001b[0m             )\n\u001b[1;32m   2596\u001b[0m             \u001b[0mtime_used\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mtime\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mtime\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m \u001b[0;34m-\u001b[0m \u001b[0mstart_run_time\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/anaconda/envs/azureml_py36/lib/python3.6/site-packages/flaml/tune/tune.py\u001b[0m in \u001b[0;36mrun\u001b[0;34m(evaluation_function, config, low_cost_partial_config, cat_hp_cost, metric, mode, time_budget_s, points_to_evaluate, evaluated_rewards, resource_attr, min_resource, max_resource, reduction_factor, scheduler, search_alg, verbose, local_dir, num_samples, resources_per_trial, config_constraints, metric_constraints, max_failure, use_ray, use_incumbent_result_in_evaluation)\u001b[0m\n\u001b[1;32m    445\u001b[0m         \u001b[0;32mand\u001b[0m \u001b[0mfail\u001b[0m \u001b[0;34m<\u001b[0m \u001b[0mub\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    446\u001b[0m     ):\n\u001b[0;32m--> 447\u001b[0;31m         \u001b[0mtrial_to_run\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0m_runner\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mstep\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m    448\u001b[0m         \u001b[0;32mif\u001b[0m \u001b[0mtrial_to_run\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    449\u001b[0m             \u001b[0mnum_trials\u001b[0m \u001b[0;34m+=\u001b[0m \u001b[0;36m1\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/anaconda/envs/azureml_py36/lib/python3.6/site-packages/flaml/tune/trial_runner.py\u001b[0m in \u001b[0;36mstep\u001b[0;34m(self)\u001b[0m\n\u001b[1;32m    117\u001b[0m         \"\"\"\n\u001b[1;32m    118\u001b[0m         \u001b[0mtrial_id\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mTrial\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mgenerate_id\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m--> 119\u001b[0;31m         \u001b[0mconfig\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_search_alg\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0msuggest\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mtrial_id\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m    120\u001b[0m         \u001b[0;32mif\u001b[0m \u001b[0mconfig\u001b[0m \u001b[0;32mis\u001b[0m \u001b[0;32mnot\u001b[0m \u001b[0;32mNone\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    121\u001b[0m             \u001b[0mtrial\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mSimpleTrial\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mconfig\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mtrial_id\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/anaconda/envs/azureml_py36/lib/python3.6/site-packages/ray/tune/suggest/suggestion.py\u001b[0m in \u001b[0;36msuggest\u001b[0;34m(self, trial_id)\u001b[0m\n\u001b[1;32m    337\u001b[0m             \u001b[0;32mreturn\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    338\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m--> 339\u001b[0;31m         \u001b[0msuggestion\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0msearcher\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0msuggest\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mtrial_id\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m    340\u001b[0m         \u001b[0;32mif\u001b[0m \u001b[0msuggestion\u001b[0m \u001b[0;32mnot\u001b[0m \u001b[0;32min\u001b[0m \u001b[0;34m(\u001b[0m\u001b[0;32mNone\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mSearcher\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mFINISHED\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    341\u001b[0m             \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mlive_trials\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0madd\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mtrial_id\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/anaconda/envs/azureml_py36/lib/python3.6/site-packages/flaml/searcher/blendsearch.py\u001b[0m in \u001b[0;36msuggest\u001b[0;34m(self, trial_id)\u001b[0m\n\u001b[1;32m   1000\u001b[0m             \u001b[0;31m# Need to restart\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m   1001\u001b[0m             \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_init_used\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0;32mFalse\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m-> 1002\u001b[0;31m         \u001b[0;32mreturn\u001b[0m \u001b[0msuper\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0msuggest\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mtrial_id\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m   1003\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m   1004\u001b[0m     \u001b[0;32mdef\u001b[0m \u001b[0m_select_thread\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mself\u001b[0m\u001b[0;34m)\u001b[0m \u001b[0;34m->\u001b[0m \u001b[0mTuple\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/anaconda/envs/azureml_py36/lib/python3.6/site-packages/flaml/searcher/blendsearch.py\u001b[0m in \u001b[0;36msuggest\u001b[0;34m(self, trial_id)\u001b[0m\n\u001b[1;32m    707\u001b[0m                 \u001b[0minit_config\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_ls\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0minit_config\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    708\u001b[0m             config, space = self._ls.complete_config(\n\u001b[0;32m--> 709\u001b[0;31m                 \u001b[0minit_config\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_ls_bound_min\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_ls_bound_max\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m    710\u001b[0m             )\n\u001b[1;32m    711\u001b[0m             \u001b[0;32mif\u001b[0m \u001b[0mreward\u001b[0m \u001b[0;32mis\u001b[0m \u001b[0;32mNone\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/anaconda/envs/azureml_py36/lib/python3.6/site-packages/flaml/searcher/flow2.py\u001b[0m in \u001b[0;36mcomplete_config\u001b[0;34m(self, partial_config, lower, upper)\u001b[0m\n\u001b[1;32m    241\u001b[0m         \u001b[0;31m# if not the first time to complete init_config, use random gaussian\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    242\u001b[0m         config, space = complete_config(\n\u001b[0;32m--> 243\u001b[0;31m             \u001b[0mpartial_config\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mspace\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mself\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mdisturb\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mlower\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mupper\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m    244\u001b[0m         )\n\u001b[1;32m    245\u001b[0m         \u001b[0;32mif\u001b[0m \u001b[0mpartial_config\u001b[0m \u001b[0;34m==\u001b[0m \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0minit_config\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/anaconda/envs/azureml_py36/lib/python3.6/site-packages/flaml/tune/space.py\u001b[0m in \u001b[0;36mcomplete_config\u001b[0;34m(partial_config, space, flow2, disturb, lower, upper)\u001b[0m\n\u001b[1;32m    518\u001b[0m             \u001b[0mconfig\u001b[0m\u001b[0;34m[\u001b[0m\u001b[0mkey\u001b[0m\u001b[0;34m]\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mvalue\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    519\u001b[0m     for _, generated in generate_variants_compatible(\n\u001b[0;32m--> 520\u001b[0;31m         \u001b[0;34m{\u001b[0m\u001b[0;34m\"config\"\u001b[0m\u001b[0;34m:\u001b[0m \u001b[0mconfig\u001b[0m\u001b[0;34m}\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mrandom_state\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0mflow2\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mrs_random\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m    521\u001b[0m     ):\n\u001b[1;32m    522\u001b[0m         \u001b[0mconfig\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mgenerated\u001b[0m\u001b[0;34m[\u001b[0m\u001b[0;34m\"config\"\u001b[0m\u001b[0;34m]\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/anaconda/envs/azureml_py36/lib/python3.6/site-packages/flaml/tune/space.py\u001b[0m in \u001b[0;36mgenerate_variants_compatible\u001b[0;34m(unresolved_spec, constant_grid_search, random_state)\u001b[0m\n\u001b[1;32m     21\u001b[0m         \u001b[0;32mreturn\u001b[0m \u001b[0mgenerate_variants\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0munresolved_spec\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mconstant_grid_search\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mrandom_state\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     22\u001b[0m     \u001b[0;32mexcept\u001b[0m \u001b[0mTypeError\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---> 23\u001b[0;31m         \u001b[0;32mreturn\u001b[0m \u001b[0mgenerate_variants\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0munresolved_spec\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mconstant_grid_search\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m     24\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     25\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;31mTypeError\u001b[0m: generate_variants() takes 1 positional argument but 2 were given"
+          ]
+        }
+      ],
+      "execution_count": 15,
+      "metadata": {}
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "#automl.best_estimator\n",
+        "automl.best_config\n",
+        "#0.1896 was best of prev run\n",
+        "\n",
+        "#nu0.1863\n"
+      ],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {}
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "test_data = pd.read_csv('data/test.csv', index_col=0)\n",
+        "test_data, _ = feature_generation(test_data)\n",
+        "test_data = pd.DataFrame(scaler.transform(test_data), columns=features, index=test_data.index)\n",
+        "\n",
+        "# holdout_pred = automl.predict(test_data)\n",
+        "holdout_pred = automl.predict_proba(test_data)\n",
+        "\n",
+        "test_data['claim'] = holdout_pred[:,1]\n",
+        "submission = test_data['claim']\n",
+        "submission.to_csv('data/holdout_predictions.csv')\n",
+        "#data_to_save.reset_index()\n",
+        "#data_to_save.to_csv('data/holdout_predictions.csv', index=False)"
+      ],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {}
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from flaml.data import get_output_from_log\n",
+        "\n",
+        "time_history, best_valid_loss_history, valid_loss_history, config_history, train_loss_history = get_output_from_log(filename='automl.log', time_budget=3600*8)"
+      ],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {}
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import matplotlib.pyplot as plt\n",
+        "import numpy as np\n",
+        "\n",
+        "plt.title('Learning Curve')\n",
+        "plt.xlabel('Wall Clock Time (s)')\n",
+        "plt.ylabel('ROC_AUC')\n",
+        "plt.scatter(time_history, 1 - np.array(valid_loss_history))\n",
+        "plt.step(time_history, 1 - np.array(best_valid_loss_history), where='post')\n",
+        "plt.show()"
+      ],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {}
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "print(\"done!\")"
+      ],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {}
+    },
+    {
+      "cell_type": "code",
+      "source": [],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {}
+    }
+  ],
+  "metadata": {
+    "orig_nbformat": 4,
+    "language_info": {
+      "name": "python",
+      "version": "3.6.9",
+      "mimetype": "text/x-python",
+      "codemirror_mode": {
+        "name": "ipython",
+        "version": 3
+      },
+      "pygments_lexer": "ipython3",
+      "nbconvert_exporter": "python",
+      "file_extension": ".py"
+    },
+    "kernelspec": {
+      "name": "python3-azureml",
+      "language": "python",
+      "display_name": "Python 3.6 - AzureML"
+    },
+    "interpreter": {
+      "hash": "57af7658dc7e4159ea53cd3eda3a2bf17c2e9d90e60a639fd3a42334d366b7cc"
+    },
+    "kernel_info": {
+      "name": "python3-azureml"
+    },
+    "nteract": {
+      "version": "nteract-front-end@1.0.0"
+    }
+  },
+  "nbformat": 4,
+  "nbformat_minor": 0
+}
